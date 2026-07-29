@@ -39,6 +39,7 @@ spring:
     baseline-on-migrate: false
     validate-on-migrate: true
     out-of-order: false
+    repair-on-migrate: true
 
   # ===== Jackson =====
   jackson:

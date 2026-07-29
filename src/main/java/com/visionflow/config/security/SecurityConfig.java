@@ -37,6 +37,10 @@ public class SecurityConfig {
             "/swagger-ui.html"
     };
 
+    private static final String ADMIN_ROLE = "ADMIN";
+    private static final String DOCTOR_ROLE = "DOCTOR";
+    private static final String PATIENT_ROLE = "PATIENT";
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -47,14 +51,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users/**").hasAnyRole("ADMIN", "DOCTOR")
-                        .requestMatchers("/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/doctors/**").hasAnyRole("ADMIN", "DOCTOR")
-                        .requestMatchers("/doctors/**").hasAnyRole("ADMIN", "DOCTOR")
-                        .requestMatchers(HttpMethod.GET, "/patients/**").hasAnyRole("ADMIN", "DOCTOR", "PATIENT")
-                        .requestMatchers("/patients/**").hasAnyRole("ADMIN", "DOCTOR")
-                        .requestMatchers(HttpMethod.GET, "/assessments/**").hasAnyRole("ADMIN", "DOCTOR", "PATIENT")
-                        .requestMatchers("/assessments/**").hasAnyRole("ADMIN", "DOCTOR")
+                        .requestMatchers(HttpMethod.GET, "/users/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
+                        .requestMatchers("/users/**").hasRole(ADMIN_ROLE)
+                        .requestMatchers(HttpMethod.GET, "/doctors/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
+                        .requestMatchers("/doctors/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
+                        .requestMatchers(HttpMethod.GET, "/patients/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE, PATIENT_ROLE)
+                        .requestMatchers("/patients/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
+                        .requestMatchers(HttpMethod.GET, "/assessments/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE, PATIENT_ROLE)
+                        .requestMatchers("/assessments/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
+                        .requestMatchers(HttpMethod.GET, "/therapy-plans/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE, PATIENT_ROLE)
+                        .requestMatchers("/therapy-plans/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
