@@ -19,6 +19,9 @@ import com.visionflow.core.appointment.repo.AppointmentRepository;
 import com.visionflow.core.appointment.service.AppointmentService;
 import com.visionflow.core.assessment.service.AssessmentService;
 import com.visionflow.core.doctor.service.DoctorService;
+import com.visionflow.core.notification.enums.NotificationType;
+import com.visionflow.core.notification.enums.ReferenceType;
+import com.visionflow.core.notification.service.NotificationService;
 import com.visionflow.core.patient.service.PatientService;
 import com.visionflow.core.therapyplan.service.TherapyPlanService;
 import jakarta.persistence.EntityNotFoundException;
@@ -43,6 +46,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final DoctorService doctorService;
     private final AssessmentService assessmentService;
     private final TherapyPlanService therapyPlanService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -70,6 +74,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         Appointment saved = appointmentRepository.save(appointment);
+        notificationService.send(
+                saved.getDoctor().getUser().getId(),
+                NotificationType.APPOINTMENT_REQUESTED,
+                "New Appointment Request",
+                "Patient " + saved.getPatient().getUser().getFirstName() + " " + saved.getPatient().getUser().getLastName() + " has requested an appointment on " + saved.getAppointmentDate() + ".",
+                ReferenceType.APPOINTMENT, saved.getId());
         return appointmentReadMapper.findById(saved.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found after save"));
     }
@@ -107,6 +117,12 @@ public class AppointmentServiceImpl implements AppointmentService {
             case NO_SHOW -> throw new IllegalStateException("Cannot confirm a NO_SHOW appointment.");
         });
         appointmentRepository.save(appointment);
+        notificationService.send(
+                appointment.getPatient().getUser().getId(),
+                NotificationType.APPOINTMENT_CONFIRMED,
+                "Appointment Confirmed",
+                "Your appointment on " + appointment.getAppointmentDate() + " has been confirmed.",
+                ReferenceType.APPOINTMENT, id);
         return appointmentReadMapper.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
     }
@@ -158,6 +174,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setCancellationReason(request != null ? request.cancellationReason() : null);
         appointmentRepository.save(appointment);
+        notificationService.send(
+                appointment.getPatient().getUser().getId(),
+                NotificationType.APPOINTMENT_CANCELLED,
+                "Appointment Cancelled",
+                "Your appointment on " + appointment.getAppointmentDate() + " has been cancelled.",
+                ReferenceType.APPOINTMENT, id);
     }
 
     @Override

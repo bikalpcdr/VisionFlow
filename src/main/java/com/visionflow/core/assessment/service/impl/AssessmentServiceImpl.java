@@ -18,6 +18,9 @@ import com.visionflow.core.assessment.repo.AssessmentRepository;
 import com.visionflow.core.assessment.service.AssessmentService;
 import com.visionflow.core.doctor.entity.Doctor;
 import com.visionflow.core.doctor.repo.DoctorRepository;
+import com.visionflow.core.notification.enums.NotificationType;
+import com.visionflow.core.notification.enums.ReferenceType;
+import com.visionflow.core.notification.service.NotificationService;
 import com.visionflow.core.patient.entity.Patient;
 import com.visionflow.core.patient.service.PatientService;
 import com.visionflow.exception.GenericUncheckedException;
@@ -43,6 +46,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     private final AssessmentMapper assessmentMapper;
     private final PatientService patientService;
     private final DoctorRepository doctorRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -83,7 +87,12 @@ public class AssessmentServiceImpl implements AssessmentService {
         Assessment saved = assessmentRepository.save(assessment);
         log.info("Assessment created: id={}, patientId={}, type={}", saved.getId(),
                 request.patientId(), request.assessmentType());
-
+        notificationService.send(
+                patient.getUser().getId(),
+                NotificationType.ASSESSMENT_COMPLETED,
+                "Assessment Created",
+                "A new " + request.assessmentType().name().replace("_", " ") + " assessment has been created for you.",
+                ReferenceType.ASSESSMENT, saved.getId());
         return assessmentReadMapper.findById(saved.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found after creation"));
     }
@@ -99,7 +108,14 @@ public class AssessmentServiceImpl implements AssessmentService {
         assessmentMapper.updateEntity(request, assessment);
         assessmentRepository.save(assessment);
         log.info("Assessment updated: id={}", id);
-
+        if (request.status() == AssessmentStatus.REVIEWED) {
+            notificationService.send(
+                    assessment.getPatient().getUser().getId(),
+                    NotificationType.ASSESSMENT_REVIEWED,
+                    "Assessment Reviewed",
+                    "Your assessment has been reviewed by your doctor.",
+                    ReferenceType.ASSESSMENT, id);
+        }
         return assessmentReadMapper.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Assessment not found after update"));
     }

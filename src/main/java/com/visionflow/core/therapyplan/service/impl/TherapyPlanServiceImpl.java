@@ -13,6 +13,9 @@ import com.visionflow.core.doctor.entity.Doctor;
 import com.visionflow.core.doctor.repo.DoctorRepository;
 import com.visionflow.core.patient.entity.Patient;
 import com.visionflow.core.patient.service.PatientService;
+import com.visionflow.core.notification.enums.NotificationType;
+import com.visionflow.core.notification.enums.ReferenceType;
+import com.visionflow.core.notification.service.NotificationService;
 import com.visionflow.core.therapyplan.dto.request.CreateTherapyPlanRequest;
 import com.visionflow.core.therapyplan.dto.request.ExerciseRequest;
 import com.visionflow.core.therapyplan.dto.request.UpdateTherapyPlanRequest;
@@ -51,6 +54,7 @@ public class TherapyPlanServiceImpl implements TherapyPlanService {
     private final PatientService patientService;
     private final DoctorRepository doctorRepository;
     private final AssessmentService assessmentService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -98,7 +102,12 @@ public class TherapyPlanServiceImpl implements TherapyPlanService {
 
         TherapyPlan saved = therapyPlanRepository.save(plan);
         log.info("Therapy plan created: id={}, patientId={}", saved.getId(), request.patientId());
-
+        notificationService.send(
+                patient.getUser().getId(),
+                NotificationType.THERAPY_PLAN_ASSIGNED,
+                "Therapy Plan Assigned",
+                "A new therapy plan \"" + request.title() + "\" has been assigned to you.",
+                ReferenceType.THERAPY_PLAN, saved.getId());
         return therapyPlanReadMapper.findById(saved.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Therapy plan not found after creation"));
     }
@@ -119,7 +128,12 @@ public class TherapyPlanServiceImpl implements TherapyPlanService {
         therapyPlanMapper.updatePlan(request, plan);
         therapyPlanRepository.save(plan);
         log.info("Therapy plan updated: id={}", id);
-
+        notificationService.send(
+                plan.getPatient().getUser().getId(),
+                NotificationType.THERAPY_PLAN_UPDATED,
+                "Therapy Plan Updated",
+                "Your therapy plan \"" + plan.getTitle() + "\" has been updated.",
+                ReferenceType.THERAPY_PLAN, id);
         return therapyPlanReadMapper.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Therapy plan not found after update"));
     }
@@ -222,6 +236,12 @@ public class TherapyPlanServiceImpl implements TherapyPlanService {
         plan.setStatus(TherapyPlanStatus.CANCELLED);
         therapyPlanRepository.save(plan);
         log.info("Therapy plan cancelled: id={}", id);
+        notificationService.send(
+                plan.getPatient().getUser().getId(),
+                NotificationType.THERAPY_PLAN_UPDATED,
+                "Therapy Plan Cancelled",
+                "Your therapy plan \"" + plan.getTitle() + "\" has been cancelled.",
+                ReferenceType.THERAPY_PLAN, id);
     }
 
     private void validateStatusTransition(TherapyPlanStatus current, TherapyPlanStatus next) {
