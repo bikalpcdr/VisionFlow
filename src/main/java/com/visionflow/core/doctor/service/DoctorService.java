@@ -9,6 +9,7 @@ package com.visionflow.core.doctor.service;
 import com.visionflow.core.doctor.dto.request.CreateDoctorRequest;
 import com.visionflow.core.doctor.dto.request.UpdateDoctorRequest;
 import com.visionflow.core.doctor.dto.response.DoctorResponse;
+import com.visionflow.core.doctor.entity.Doctor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,6 +20,8 @@ public interface DoctorService {
     DoctorResponse update(Long id, UpdateDoctorRequest request);
 
     DoctorResponse getById(Long id);
+
+    Doctor getEntityById(Long id);
 
     DoctorResponse getByUserId(Long userId);
 

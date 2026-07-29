@@ -93,6 +93,13 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional(readOnly = true)
+    public Doctor getEntityById(Long id) {
+        return doctorRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found with id: " + id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public DoctorResponse getById(Long id) {
         return doctorReadMapper.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Doctor not found with id: " + id));
