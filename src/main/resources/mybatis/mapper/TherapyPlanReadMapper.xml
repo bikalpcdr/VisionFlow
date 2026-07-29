@@ -24,24 +24,21 @@
 
     <!-- ===== Full plan resultMap with nested exercises ===== -->
     <resultMap id="TherapyPlanResponseMap" type="com.visionflow.core.therapyplan.dto.response.TherapyPlanResponse">
-        <constructor>
-            <idArg column="id"              javaType="Long"/>
-            <arg  column="patient_id"       javaType="Long"/>
-            <arg  column="patient_name"     javaType="String"/>
-            <arg  column="doctor_id"        javaType="Long"/>
-            <arg  column="doctor_name"      javaType="String"/>
-            <arg  column="assessment_id"    javaType="Long"/>
-            <arg  column="title"            javaType="String"/>
-            <arg  column="description"      javaType="String"/>
-            <arg  column="status"           javaType="com.visionflow.core.therapyplan.enums.TherapyPlanStatus"
-                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
-            <arg  column="start_date"       javaType="java.time.LocalDate"/>
-            <arg  column="end_date"         javaType="java.time.LocalDate"/>
-            <arg  column="goals"            javaType="String"/>
-            <arg  column="notes"            javaType="String"/>
-            <arg  column="exercises"        javaType="java.util.List"/>
-            <arg  column="created_at"       javaType="java.time.LocalDateTime"/>
-        </constructor>
+        <id     property="id"           column="id"/>
+        <result property="patientId"    column="patient_id"/>
+        <result property="patientName"  column="patient_name"/>
+        <result property="doctorId"     column="doctor_id"/>
+        <result property="doctorName"   column="doctor_name"/>
+        <result property="assessmentId" column="assessment_id"/>
+        <result property="title"        column="title"/>
+        <result property="description"  column="description"/>
+        <result property="status"       column="status"
+                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="startDate"    column="start_date"/>
+        <result property="endDate"      column="end_date"/>
+        <result property="goals"        column="goals"/>
+        <result property="notes"        column="notes"/>
+        <result property="createdAt"    column="created_at"/>
         <collection property="exercises" ofType="com.visionflow.core.therapyplan.dto.response.ExerciseResponse"
                     resultMap="ExerciseResponseMap"/>
     </resultMap>
