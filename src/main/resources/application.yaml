@@ -19,7 +19,7 @@ spring:
   # ===== JPA / Hibernate =====
   jpa:
     hibernate:
-      ddl-auto: validate          # Flyway owns the schema; Hibernate only validates
+      ddl-auto: create          # Drop and recreate schema on every startup (dev only)
     show-sql: false               # Never true in production — use query logging via p6spy if needed
     open-in-view: false           # Prevents lazy-loading outside transaction boundary (LazyInitializationException is a feature, not a bug)
     properties:
@@ -34,12 +34,12 @@ spring:
 
   # ===== Flyway =====
   flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: false
-    validate-on-migrate: true
-    out-of-order: false
-    repair-on-migrate: true
+    enabled: false
+#    locations: classpath:db/migration
+#    baseline-on-migrate: false
+#    validate-on-migrate: true
+#    out-of-order: false
+#    repair-on-migrate: true
 
   # ===== Jackson =====
   jackson:

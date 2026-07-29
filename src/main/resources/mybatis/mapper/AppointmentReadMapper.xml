@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.visionflow.core.appointment.repo.AppointmentReadMapper">
+
+    <!-- ===== Full appointment resultMap ===== -->
+    <resultMap id="AppointmentResponseMap" type="com.visionflow.core.appointment.dto.response.AppointmentResponse">
+        <constructor>
+            <idArg column="id"                  javaType="Long"/>
+            <arg   column="patient_id"          javaType="Long"/>
+            <arg   column="patient_name"        javaType="String"/>
+            <arg   column="doctor_id"           javaType="Long"/>
+            <arg   column="doctor_name"         javaType="String"/>
+            <arg   column="assessment_id"       javaType="Long"/>
+            <arg   column="therapy_plan_id"     javaType="Long"/>
+            <arg   column="therapy_plan_title"  javaType="String"/>
+            <arg   column="appointment_type"    javaType="com.visionflow.core.appointment.enums.AppointmentType"
+                   typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg   column="status"              javaType="com.visionflow.core.appointment.enums.AppointmentStatus"
+                   typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg   column="appointment_date"    javaType="java.time.LocalDateTime"/>
+            <arg   column="duration_minutes"    javaType="Integer"/>
+            <arg   column="patient_notes"       javaType="String"/>
+            <arg   column="doctor_notes"        javaType="String"/>
+            <arg   column="cancellation_reason" javaType="String"/>
+            <arg   column="created_at"          javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <!-- ===== Summary resultMap ===== -->
+    <resultMap id="AppointmentSummaryMap" type="com.visionflow.core.appointment.dto.response.AppointmentSummaryResponse">
+        <constructor>
+            <idArg column="id"               javaType="Long"/>
+            <arg   column="patient_id"       javaType="Long"/>
+            <arg   column="patient_name"     javaType="String"/>
+            <arg   column="doctor_id"        javaType="Long"/>
+            <arg   column="doctor_name"      javaType="String"/>
+            <arg   column="appointment_type" javaType="com.visionflow.core.appointment.enums.AppointmentType"
+                   typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg   column="status"           javaType="com.visionflow.core.appointment.enums.AppointmentStatus"
+                   typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg   column="appointment_date" javaType="java.time.LocalDateTime"/>
+            <arg   column="duration_minutes" javaType="Integer"/>
+            <arg   column="created_at"       javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="appointmentJoins">
+        FROM appointments a
+        INNER JOIN patients p   ON p.id  = a.patient_id
+        INNER JOIN users pu     ON pu.id = p.user_id
+        INNER JOIN doctors d    ON d.id  = a.doctor_id
+        INNER JOIN users du     ON du.id = d.user_id
+        WHERE a.deleted = false
+    </sql>
+
+    <!-- ===== findById ===== -->
+    <select id="findById" resultMap="AppointmentResponseMap">
+        SELECT
+            a.id,
+            a.patient_id,
+            CONCAT(pu.first_name, ' ', pu.last_name)  AS patient_name,
+            a.doctor_id,
+            CONCAT(du.first_name, ' ', du.last_name)  AS doctor_name,
+            a.assessment_id,
+            a.therapy_plan_id,
+            tp.title                                   AS therapy_plan_title,
+            a.appointment_type,
+            a.status,
+            a.appointment_date,
+            a.duration_minutes,
+            a.patient_notes,
+            a.doctor_notes,
+            a.cancellation_reason,
+            a.created_at
+        <include refid="appointmentJoins"/>
+        AND a.id = #{id}
+        LEFT JOIN therapy_plans tp ON tp.id = a.therapy_plan_id
+    </select>
+
+    <!-- ===== findAll ===== -->
+    <select id="findAll" resultMap="AppointmentSummaryMap">
+        SELECT
+            a.id,
+            a.patient_id,
+            CONCAT(pu.first_name, ' ', pu.last_name)  AS patient_name,
+            a.doctor_id,
+            CONCAT(du.first_name, ' ', du.last_name)  AS doctor_name,
+            a.appointment_type,
+            a.status,
+            a.appointment_date,
+            a.duration_minutes,
+            a.created_at
+        <include refid="appointmentJoins"/>
+        <if test="patientId != null">AND a.patient_id = #{patientId}</if>
+        <if test="doctorId != null">AND a.doctor_id = #{doctorId}</if>
+        <if test="status != null">AND a.status = #{status}</if>
+        <if test="appointmentType != null">AND a.appointment_type = #{appointmentType}</if>
+        ORDER BY a.appointment_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- ===== countAll ===== -->
+    <select id="countAll" resultType="long">
+        SELECT COUNT(a.id)
+        <include refid="appointmentJoins"/>
+        <if test="patientId != null">AND a.patient_id = #{patientId}</if>
+        <if test="doctorId != null">AND a.doctor_id = #{doctorId}</if>
+        <if test="status != null">AND a.status = #{status}</if>
+        <if test="appointmentType != null">AND a.appointment_type = #{appointmentType}</if>
+    </select>
+
+    <!-- ===== findByPatientId ===== -->
+    <select id="findByPatientId" resultMap="AppointmentSummaryMap">
+        SELECT
+            a.id,
+            a.patient_id,
+            CONCAT(pu.first_name, ' ', pu.last_name)  AS patient_name,
+            a.doctor_id,
+            CONCAT(du.first_name, ' ', du.last_name)  AS doctor_name,
+            a.appointment_type,
+            a.status,
+            a.appointment_date,
+            a.duration_minutes,
+            a.created_at
+        <include refid="appointmentJoins"/>
+        AND a.patient_id = #{patientId}
+        ORDER BY a.appointment_date DESC
+    </select>
+
+    <!-- ===== findByDoctorId ===== -->
+    <select id="findByDoctorId" resultMap="AppointmentSummaryMap">
+        SELECT
+            a.id,
+            a.patient_id,
+            CONCAT(pu.first_name, ' ', pu.last_name)  AS patient_name,
+            a.doctor_id,
+            CONCAT(du.first_name, ' ', du.last_name)  AS doctor_name,
+            a.appointment_type,
+            a.status,
+            a.appointment_date,
+            a.duration_minutes,
+            a.created_at
+        <include refid="appointmentJoins"/>
+        AND a.doctor_id = #{doctorId}
+        ORDER BY a.appointment_date DESC
+    </select>
+
+</mapper>
