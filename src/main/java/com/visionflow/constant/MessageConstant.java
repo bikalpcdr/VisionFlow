@@ -21,6 +21,8 @@ public class MessageConstant {
     public static final String UPDATED = "updated";
     public static final String DELETED = "deleted";
     public static final String FETCHED = "fetched";
+    public static final String DOCTOR = "doctor";
+    public static final String PATIENT = "patient";
     public static final String USER_STATS = "user stats";
     public static final String CHECKED = "checked";
 
