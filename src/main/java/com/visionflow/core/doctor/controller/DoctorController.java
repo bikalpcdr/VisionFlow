@@ -26,14 +26,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import static com.visionflow.constant.MessageConstant.DOCTOR;
+
 @RestController
 @RequestMapping("/doctors")
 @RequiredArgsConstructor
 @Tag(name = "Doctors", description = "Doctor profile management")
 @SecurityRequirement(name = "bearerAuth")
 public class DoctorController {
-
-    private static final String DOCTOR = "Doctor";
 
     private final DoctorService doctorService;
 

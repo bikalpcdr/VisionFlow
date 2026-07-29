@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.visionflow.core.patient.repo.PatientReadMapper">
+
+    <resultMap id="PatientResponseMap" type="com.visionflow.core.patient.dto.response.PatientResponse">
+        <constructor>
+            <idArg column="id"                       javaType="Long"/>
+            <arg  column="user_id"                   javaType="Long"/>
+            <arg  column="first_name"                javaType="String"/>
+            <arg  column="last_name"                 javaType="String"/>
+            <arg  column="email"                     javaType="String"/>
+            <arg  column="phone"                     javaType="String"/>
+            <arg  column="date_of_birth"             javaType="java.time.LocalDate"/>
+            <arg  column="age"                       javaType="Integer"/>
+            <arg  column="gender"                    javaType="com.visionflow.core.patient.enums.Gender"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="blood_group"               javaType="com.visionflow.core.patient.enums.BloodGroup"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="address"                   javaType="String"/>
+            <arg  column="emergency_contact_name"    javaType="String"/>
+            <arg  column="emergency_contact_phone"   javaType="String"/>
+            <arg  column="allergies"                 javaType="String"/>
+            <arg  column="medical_notes"             javaType="String"/>
+            <arg  column="assigned_doctor_id"        javaType="Long"/>
+            <arg  column="assigned_doctor_name"      javaType="String"/>
+            <arg  column="active"                    javaType="boolean"/>
+            <arg  column="created_at"                javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="selectColumns">
+        p.id,
+        p.user_id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone,
+        p.date_of_birth,
+        DATE_PART('year', AGE(p.date_of_birth))::INTEGER AS age,
+        p.gender,
+        p.blood_group,
+        p.address,
+        p.emergency_contact_name,
+        p.emergency_contact_phone,
+        p.allergies,
+        p.medical_notes,
+        d.id                                            AS assigned_doctor_id,
+        CONCAT(du.first_name, ' ', du.last_name)        AS assigned_doctor_name,
+        p.active,
+        p.created_at
+    </sql>
+
+    <sql id="baseFrom">
+        FROM patients p
+        INNER JOIN users u  ON u.id  = p.user_id
+        LEFT  JOIN doctors d  ON d.id  = p.doctor_id
+        LEFT  JOIN users du ON du.id = d.user_id
+        WHERE p.deleted = false
+          AND u.deleted = false
+    </sql>
+
+    <select id="findById" resultMap="PatientResponseMap">
+        SELECT <include refid="selectColumns"/>
+        <include refid="baseFrom"/>
+        AND p.id = #{id}
+    </select>
+
+    <select id="findByUserId" resultMap="PatientResponseMap">
+        SELECT <include refid="selectColumns"/>
+        <include refid="baseFrom"/>
+        AND p.user_id = #{userId}
+    </select>
+
+    <select id="findAll" resultMap="PatientResponseMap">
+        SELECT <include refid="selectColumns"/>
+        <include refid="baseFrom"/>
+        <if test="doctorId != null">
+            AND p.doctor_id = #{doctorId}
+        </if>
+        <if test="gender != null">
+            AND p.gender = #{gender}
+        </if>
+        <if test="active != null">
+            AND p.active = #{active}
+        </if>
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        <include refid="baseFrom"/>
+        <if test="doctorId != null">
+            AND p.doctor_id = #{doctorId}
+        </if>
+        <if test="gender != null">
+            AND p.gender = #{gender}
+        </if>
+        <if test="active != null">
+            AND p.active = #{active}
+        </if>
+    </select>
+
+</mapper>
