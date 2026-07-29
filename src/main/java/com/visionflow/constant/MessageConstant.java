@@ -27,6 +27,7 @@ public class MessageConstant {
     public static final String THERAPY_PLAN = "therapy plan";
     public static final String SESSION = "session";
     public static final String APPOINTMENT = "appointment";
+    public static final String NOTIFICATION = "notification";
     public static final String PROGRESS = "progress";
     public static final String USER_STATS = "user stats";
     public static final String CHECKED = "checked";

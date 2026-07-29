@@ -18,6 +18,9 @@ import com.visionflow.core.session.mapper.SessionMapper;
 import com.visionflow.core.session.repo.SessionReadMapper;
 import com.visionflow.core.session.repo.TherapySessionRepository;
 import com.visionflow.core.session.service.SessionService;
+import com.visionflow.core.notification.enums.NotificationType;
+import com.visionflow.core.notification.enums.ReferenceType;
+import com.visionflow.core.notification.service.NotificationService;
 import com.visionflow.core.therapyplan.entity.TherapyExercise;
 import com.visionflow.core.therapyplan.entity.TherapyPlan;
 import com.visionflow.core.therapyplan.enums.TherapyPlanStatus;
@@ -42,6 +45,7 @@ public class SessionServiceImpl implements SessionService {
     private final SessionMapper sessionMapper;
     private final TherapyPlanService therapyPlanService;
     private final TherapyExerciseRepository exerciseRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -70,6 +74,12 @@ public class SessionServiceImpl implements SessionService {
         }
 
         TherapySession saved = sessionRepository.save(session);
+        notificationService.send(
+                plan.getPatient().getUser().getId(),
+                NotificationType.SESSION_SCHEDULED,
+                "Session Scheduled",
+                "A therapy session (#" + session.getSessionNumber() + ") has been scheduled for " + request.sessionDate() + ".",
+                ReferenceType.THERAPY_SESSION, saved.getId());
         return sessionReadMapper.findById(saved.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Session not found after save"));
     }
@@ -113,6 +123,12 @@ public class SessionServiceImpl implements SessionService {
             case CANCELLED -> throw new IllegalStateException("Cannot complete a CANCELLED session.");
         });
         sessionRepository.save(session);
+        notificationService.send(
+                session.getPatient().getUser().getId(),
+                NotificationType.SESSION_COMPLETED,
+                "Session Completed",
+                "Therapy session #" + session.getSessionNumber() + " has been completed.",
+                ReferenceType.THERAPY_SESSION, id);
         return sessionReadMapper.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Session not found"));
     }

@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/sessions/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE)
                         .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE, PATIENT_ROLE)
                         .requestMatchers("/appointments/**").hasAnyRole(ADMIN_ROLE, DOCTOR_ROLE, PATIENT_ROLE)
+                        .requestMatchers("/notifications/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
