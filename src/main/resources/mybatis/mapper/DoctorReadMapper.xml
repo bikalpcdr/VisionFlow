@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.visionflow.core.doctor.repo.DoctorReadMapper">
+
+    <resultMap id="DoctorResponseMap" type="com.visionflow.core.doctor.dto.response.DoctorResponse">
+        <constructor>
+            <idArg column="id"                   javaType="Long"/>
+            <arg  column="user_id"               javaType="Long"/>
+            <arg  column="first_name"            javaType="String"/>
+            <arg  column="last_name"             javaType="String"/>
+            <arg  column="email"                 javaType="String"/>
+            <arg  column="phone"                 javaType="String"/>
+            <arg  column="specialization"        javaType="com.visionflow.core.doctor.enums.Specialization"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="license_number"        javaType="String"/>
+            <arg  column="qualification"         javaType="String"/>
+            <arg  column="years_of_experience"   javaType="Integer"/>
+            <arg  column="bio"                   javaType="String"/>
+            <arg  column="clinic_name"           javaType="String"/>
+            <arg  column="clinic_address"        javaType="String"/>
+            <arg  column="active"                javaType="boolean"/>
+            <arg  column="created_at"            javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="selectColumns">
+        d.id,
+        d.user_id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone,
+        d.specialization,
+        d.license_number,
+        d.qualification,
+        d.years_of_experience,
+        d.bio,
+        d.clinic_name,
+        d.clinic_address,
+        d.active,
+        d.created_at
+    </sql>
+
+    <sql id="baseFrom">
+        FROM doctors d
+        INNER JOIN users u ON u.id = d.user_id
+        WHERE d.deleted = false
+          AND u.deleted = false
+    </sql>
+
+    <select id="findById" resultMap="DoctorResponseMap">
+        SELECT <include refid="selectColumns"/>
+        <include refid="baseFrom"/>
+        AND d.id = #{id}
+    </select>
+
+    <select id="findByUserId" resultMap="DoctorResponseMap">
+        SELECT <include refid="selectColumns"/>
+        <include refid="baseFrom"/>
+        AND d.user_id = #{userId}
+    </select>
+
+    <select id="findAll" resultMap="DoctorResponseMap">
+        SELECT <include refid="selectColumns"/>
+        <include refid="baseFrom"/>
+        <if test="specialization != null">
+            AND d.specialization = #{specialization}
+        </if>
+        <if test="active != null">
+            AND d.active = #{active}
+        </if>
+        ORDER BY d.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        <include refid="baseFrom"/>
+        <if test="specialization != null">
+            AND d.specialization = #{specialization}
+        </if>
+        <if test="active != null">
+            AND d.active = #{active}
+        </if>
+    </select>
+
+</mapper>
