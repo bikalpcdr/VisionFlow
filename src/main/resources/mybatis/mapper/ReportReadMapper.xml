@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.visionflow.core.report.repo.ReportReadMapper">
+
+    <!-- ===== Patient Progress ===== -->
+    <resultMap id="PatientProgressMap" type="com.visionflow.core.report.dto.response.PatientProgressReport">
+        <constructor>
+            <idArg column="patient_id"              javaType="Long"/>
+            <arg   column="patient_name"            javaType="String"/>
+            <arg   column="active_plans"            javaType="Long"/>
+            <arg   column="completed_plans"         javaType="Long"/>
+            <arg   column="total_sessions"          javaType="Long"/>
+            <arg   column="completed_sessions"      javaType="Long"/>
+            <arg   column="cancelled_sessions"      javaType="Long"/>
+            <arg   column="total_exercises_logged"  javaType="Long"/>
+            <arg   column="completed_exercises"     javaType="Long"/>
+            <arg   column="completion_rate"         javaType="Double"/>
+            <arg   column="avg_performance"         javaType="String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="getPatientProgress" resultMap="PatientProgressMap">
+        SELECT
+            p.id                                                                AS patient_id,
+            CONCAT(u.first_name, ' ', u.last_name)                             AS patient_name,
+            COUNT(DISTINCT tp.id) FILTER (WHERE tp.status = 'ACTIVE')          AS active_plans,
+            COUNT(DISTINCT tp.id) FILTER (WHERE tp.status = 'COMPLETED')       AS completed_plans,
+            COUNT(DISTINCT ts.id)                                               AS total_sessions,
+            COUNT(DISTINCT ts.id) FILTER (WHERE ts.status = 'COMPLETED')       AS completed_sessions,
+            COUNT(DISTINCT ts.id) FILTER (WHERE ts.status = 'CANCELLED')       AS cancelled_sessions,
+            COUNT(el.id)                                                        AS total_exercises_logged,
+            COUNT(el.id) FILTER (WHERE el.completion_status = 'COMPLETED')     AS completed_exercises,
+            CASE
+                WHEN COUNT(el.id) = 0 THEN 0.0
+                ELSE ROUND(
+                    COUNT(el.id) FILTER (WHERE el.completion_status = 'COMPLETED') * 100.0 / COUNT(el.id),
+                    2)
+            END                                                                 AS completion_rate,
+            MODE() WITHIN GROUP (ORDER BY ts.overall_performance)              AS avg_performance
+        FROM patients p
+        JOIN users u ON u.id = p.user_id
+        LEFT JOIN therapy_plans tp  ON tp.patient_id = p.id  AND tp.deleted = false
+        LEFT JOIN therapy_sessions ts ON ts.patient_id = p.id AND ts.deleted = false
+        LEFT JOIN exercise_logs el  ON el.session_id = ts.id  AND el.deleted = false
+        WHERE p.id = #{patientId}
+          AND p.deleted = false
+        GROUP BY p.id, u.first_name, u.last_name
+    </select>
+
+    <!-- ===== Doctor Workload ===== -->
+    <resultMap id="DoctorWorkloadMap" type="com.visionflow.core.report.dto.response.DoctorWorkloadReport">
+        <constructor>
+            <idArg column="doctor_id"                  javaType="Long"/>
+            <arg   column="doctor_name"                javaType="String"/>
+            <arg   column="specialization"             javaType="String"/>
+            <arg   column="total_appointments"         javaType="Long"/>
+            <arg   column="completed_appointments"     javaType="Long"/>
+            <arg   column="cancelled_appointments"     javaType="Long"/>
+            <arg   column="no_show_appointments"       javaType="Long"/>
+            <arg   column="total_sessions"             javaType="Long"/>
+            <arg   column="completed_sessions"         javaType="Long"/>
+            <arg   column="total_assessments"          javaType="Long"/>
+            <arg   column="total_active_plans"         javaType="Long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="getDoctorWorkload" resultMap="DoctorWorkloadMap">
+        SELECT
+            d.id                                                                        AS doctor_id,
+            CONCAT(u.first_name, ' ', u.last_name)                                     AS doctor_name,
+            d.specialization                                                            AS specialization,
+            COUNT(DISTINCT a.id)                                                        AS total_appointments,
+            COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'COMPLETED')                 AS completed_appointments,
+            COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'CANCELLED')                 AS cancelled_appointments,
+            COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'NO_SHOW')                   AS no_show_appointments,
+            COUNT(DISTINCT ts.id)                                                       AS total_sessions,
+            COUNT(DISTINCT ts.id) FILTER (WHERE ts.status = 'COMPLETED')               AS completed_sessions,
+            COUNT(DISTINCT asmt.id)                                                     AS total_assessments,
+            COUNT(DISTINCT tp.id) FILTER (WHERE tp.status = 'ACTIVE')                  AS total_active_plans
+        FROM doctors d
+        JOIN users u ON u.id = d.user_id
+        LEFT JOIN appointments    a    ON a.doctor_id    = d.id AND a.deleted    = false
+        LEFT JOIN therapy_sessions ts  ON ts.doctor_id   = d.id AND ts.deleted   = false
+        LEFT JOIN assessments      asmt ON asmt.doctor_id = d.id AND asmt.deleted = false
+        LEFT JOIN therapy_plans    tp  ON tp.doctor_id   = d.id AND tp.deleted   = false
+        WHERE d.id = #{doctorId}
+          AND d.deleted = false
+        GROUP BY d.id, u.first_name, u.last_name, d.specialization
+    </select>
+
+    <!-- ===== Clinic Overview ===== -->
+    <resultMap id="ClinicOverviewMap" type="com.visionflow.core.report.dto.response.ClinicOverviewReport">
+        <constructor>
+            <arg column="total_patients"           javaType="Long"/>
+            <arg column="total_doctors"            javaType="Long"/>
+            <arg column="total_appointments"       javaType="Long"/>
+            <arg column="completed_appointments"   javaType="Long"/>
+            <arg column="cancelled_appointments"   javaType="Long"/>
+            <arg column="total_assessments"        javaType="Long"/>
+            <arg column="completed_assessments"    javaType="Long"/>
+            <arg column="total_therapy_plans"      javaType="Long"/>
+            <arg column="active_therapy_plans"     javaType="Long"/>
+            <arg column="total_sessions"           javaType="Long"/>
+            <arg column="completed_sessions"       javaType="Long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="getClinicOverview" resultMap="ClinicOverviewMap">
+        SELECT
+            (SELECT COUNT(*) FROM patients    WHERE deleted = false)  AS total_patients,
+            (SELECT COUNT(*) FROM doctors     WHERE deleted = false)  AS total_doctors,
+            COUNT(DISTINCT a.id)                                       AS total_appointments,
+            COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'COMPLETED')  AS completed_appointments,
+            COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'CANCELLED')  AS cancelled_appointments,
+            COUNT(DISTINCT asmt.id)                                    AS total_assessments,
+            COUNT(DISTINCT asmt.id) FILTER (WHERE asmt.status = 'COMPLETED') AS completed_assessments,
+            COUNT(DISTINCT tp.id)                                      AS total_therapy_plans,
+            COUNT(DISTINCT tp.id) FILTER (WHERE tp.status = 'ACTIVE') AS active_therapy_plans,
+            COUNT(DISTINCT ts.id)                                      AS total_sessions,
+            COUNT(DISTINCT ts.id) FILTER (WHERE ts.status = 'COMPLETED') AS completed_sessions
+        FROM
+            (SELECT 1) AS dummy
+        LEFT JOIN appointments     a    ON a.deleted    = false
+            <if test="from != null">AND CAST(a.appointment_date AS DATE) &gt;= #{from}</if>
+            <if test="to   != null">AND CAST(a.appointment_date AS DATE) &lt;= #{to}</if>
+        LEFT JOIN assessments      asmt ON asmt.deleted = false
+            <if test="from != null">AND CAST(asmt.assessment_date AS DATE) &gt;= #{from}</if>
+            <if test="to   != null">AND CAST(asmt.assessment_date AS DATE) &lt;= #{to}</if>
+        LEFT JOIN therapy_plans    tp   ON tp.deleted   = false
+            <if test="from != null">AND tp.start_date &gt;= #{from}</if>
+            <if test="to   != null">AND tp.start_date &lt;= #{to}</if>
+        LEFT JOIN therapy_sessions ts   ON ts.deleted   = false
+            <if test="from != null">AND CAST(ts.session_date AS DATE) &gt;= #{from}</if>
+            <if test="to   != null">AND CAST(ts.session_date AS DATE) &lt;= #{to}</if>
+    </select>
+
+</mapper>
