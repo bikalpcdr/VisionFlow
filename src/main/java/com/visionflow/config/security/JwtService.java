@@ -10,6 +10,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class JwtService {
 
     private final SecretKey signingKey;
+    @Getter
     private final long accessTokenExpiration;
     private final long refreshTokenExpiration;
 
@@ -56,10 +58,6 @@ public class JwtService {
             log.warn("Invalid JWT token: {}", ex.getMessage());
             return false;
         }
-    }
-
-    public long getAccessTokenExpiration() {
-        return accessTokenExpiration;
     }
 
     private String buildToken(String subject, Map<String, Object> extraClaims, long expiration) {

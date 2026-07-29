@@ -1,11 +1,5 @@
 package com.visionflow.api;
 
-/**
- * @author bikalpa.chaudharii
- * @project visionflow
- * @created 26/7/29
- */
-
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Data;

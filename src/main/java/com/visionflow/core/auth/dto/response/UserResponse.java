@@ -7,15 +7,17 @@ package com.visionflow.core.auth.dto.response;
  */
 
 import com.visionflow.core.auth.enums.Role;
+
 import java.time.LocalDateTime;
 
 public record UserResponse(
-    Long id,
-    String firstName,
-    String lastName,
-    String email,
-    String phone,
-    Role role,
-    boolean active,
-    LocalDateTime createdAt
-) {}
+        Long id,
+        String firstName,
+        String lastName,
+        String email,
+        String phone,
+        Role role,
+        boolean active,
+        LocalDateTime createdAt
+) {
+}

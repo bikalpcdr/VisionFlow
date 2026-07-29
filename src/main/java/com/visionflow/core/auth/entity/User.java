@@ -9,8 +9,9 @@ package com.visionflow.core.auth.entity;
 import com.visionflow.core.auth.enums.Role;
 import com.visionflow.shared.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 /**
  * Design decisions:
  * - Long PK: users are internal, sequential, never exposed in URLs (UUIDs used in DTOs if needed).
@@ -18,20 +19,18 @@ import lombok.*;
  * - role stored as STRING for readability in DB and safe enum evolution.
  * - password is never included in any response DTO — enforced at mapper level.
  * - UserDetails implemented here to keep Spring Security integration clean
- *   without a separate adapter class.
+ * without a separate adapter class.
  */
 @Entity
 @Table(
-    name = "users",
-    indexes = {
-        @Index(name = "idx_users_email", columnList = "email", unique = true)
-    }
+        name = "users",
+        indexes = {
+                @Index(name = "idx_users_email", columnList = "email", unique = true)
+        }
 )
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class User extends BaseEntity {
 
     @Id

@@ -1,11 +1,5 @@
 package com.visionflow.api;
 
-/**
- * @author bikalpa.chaudharii
- * @project visionflow
- * @created 26/7/29
- */
-
 import com.visionflow.annotation.SuccessMessage;
 import com.visionflow.constant.MessageConstant;
 import jakarta.annotation.Nullable;
@@ -35,7 +29,7 @@ public class ResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
         if (returnType == null) return false;
         String declaringClass = returnType.getDeclaringClass().getName();
         return !declaringClass.startsWith("org.springdoc") &&
-               !declaringClass.startsWith("org.springframework.boot.actuate");
+                !declaringClass.startsWith("org.springframework.boot.actuate");
     }
 
     @Override

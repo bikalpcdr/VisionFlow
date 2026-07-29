@@ -15,6 +15,7 @@ import com.visionflow.core.auth.dto.response.AuthResponse;
 import com.visionflow.core.auth.dto.response.UserResponse;
 import com.visionflow.core.auth.enums.Role;
 import com.visionflow.core.auth.service.AuthService;
+import com.visionflow.core.auth.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -63,7 +65,7 @@ public class AuthController {
     @SuccessMessage(entity = MessageConstant.USER, action = MessageConstant.FETCHED)
     @Operation(summary = "Get user by ID", security = @SecurityRequirement(name = "bearerAuth"))
     public UserResponse getById(@PathVariable Long id) {
-        return authService.getById(id);
+        return userService.getById(id);
     }
 
     @GetMapping("/users")
@@ -74,7 +76,7 @@ public class AuthController {
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) Boolean active,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return authService.getAll(role != null ? role.name() : null, active, pageable);
+        return userService.getAll(role != null ? role.name() : null, active, pageable);
     }
 
     @PatchMapping("/users/{id}/deactivate")
@@ -82,7 +84,7 @@ public class AuthController {
     @SuccessMessage(entity = MessageConstant.USER, action = MessageConstant.UPDATED)
     @Operation(summary = "Deactivate a user account", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Void> deactivate(@PathVariable Long id) {
-        authService.deactivate(id);
+        userService.deactivate(id);
         return ResponseEntity.noContent().build();
     }
 }

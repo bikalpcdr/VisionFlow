@@ -10,9 +10,6 @@ import com.visionflow.core.auth.dto.request.LoginRequest;
 import com.visionflow.core.auth.dto.request.RefreshTokenRequest;
 import com.visionflow.core.auth.dto.request.RegisterRequest;
 import com.visionflow.core.auth.dto.response.AuthResponse;
-import com.visionflow.core.auth.dto.response.UserResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface AuthService {
 
@@ -21,10 +18,4 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
 
     AuthResponse refresh(RefreshTokenRequest request);
-
-    UserResponse getById(Long id);
-
-    Page<UserResponse> getAll(String role, Boolean active, Pageable pageable);
-
-    void deactivate(Long id);
 }

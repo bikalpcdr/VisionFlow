@@ -26,6 +26,7 @@ public class UserPrincipal implements UserDetails {
     private final Long id;
     private final String email;
     private final String password;
+    @Getter
     private final boolean active;
     private final Collection<? extends GrantedAuthority> authorities;
 
@@ -48,9 +49,13 @@ public class UserPrincipal implements UserDetails {
         );
     }
 
-    @Override public String getUsername() { return email; }
-    @Override public boolean isAccountNonExpired() { return active; }
-    @Override public boolean isAccountNonLocked() { return active; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return active; }
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return active;
+    }
 }
