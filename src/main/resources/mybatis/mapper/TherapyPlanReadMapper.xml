@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.visionflow.core.therapyplan.repo.TherapyPlanReadMapper">
+
+    <!-- ===== Exercise nested resultMap ===== -->
+    <resultMap id="ExerciseResponseMap" type="com.visionflow.core.therapyplan.dto.response.ExerciseResponse">
+        <constructor>
+            <idArg column="ex_id"               javaType="Long"/>
+            <arg  column="exercise_type"         javaType="com.visionflow.core.therapyplan.enums.ExerciseType"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="ex_name"               javaType="String"/>
+            <arg  column="ex_description"        javaType="String"/>
+            <arg  column="frequency"             javaType="Integer"/>
+            <arg  column="frequency_unit"        javaType="com.visionflow.core.therapyplan.enums.FrequencyUnit"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="duration_minutes"      javaType="Integer"/>
+            <arg  column="repetitions"           javaType="Integer"/>
+            <arg  column="order_index"           javaType="Integer"/>
+            <arg  column="instructions"          javaType="String"/>
+        </constructor>
+    </resultMap>
+
+    <!-- ===== Full plan resultMap with nested exercises ===== -->
+    <resultMap id="TherapyPlanResponseMap" type="com.visionflow.core.therapyplan.dto.response.TherapyPlanResponse">
+        <constructor>
+            <idArg column="id"              javaType="Long"/>
+            <arg  column="patient_id"       javaType="Long"/>
+            <arg  column="patient_name"     javaType="String"/>
+            <arg  column="doctor_id"        javaType="Long"/>
+            <arg  column="doctor_name"      javaType="String"/>
+            <arg  column="assessment_id"    javaType="Long"/>
+            <arg  column="title"            javaType="String"/>
+            <arg  column="description"      javaType="String"/>
+            <arg  column="status"           javaType="com.visionflow.core.therapyplan.enums.TherapyPlanStatus"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="start_date"       javaType="java.time.LocalDate"/>
+            <arg  column="end_date"         javaType="java.time.LocalDate"/>
+            <arg  column="goals"            javaType="String"/>
+            <arg  column="notes"            javaType="String"/>
+            <arg  column="exercises"        javaType="java.util.List"/>
+            <arg  column="created_at"       javaType="java.time.LocalDateTime"/>
+        </constructor>
+        <collection property="exercises" ofType="com.visionflow.core.therapyplan.dto.response.ExerciseResponse"
+                    resultMap="ExerciseResponseMap"/>
+    </resultMap>
+
+    <!-- ===== Summary resultMap ===== -->
+    <resultMap id="TherapyPlanSummaryMap" type="com.visionflow.core.therapyplan.dto.response.TherapyPlanSummaryResponse">
+        <constructor>
+            <idArg column="id"               javaType="Long"/>
+            <arg  column="patient_id"        javaType="Long"/>
+            <arg  column="patient_name"      javaType="String"/>
+            <arg  column="doctor_id"         javaType="Long"/>
+            <arg  column="doctor_name"       javaType="String"/>
+            <arg  column="title"             javaType="String"/>
+            <arg  column="status"            javaType="com.visionflow.core.therapyplan.enums.TherapyPlanStatus"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="start_date"        javaType="java.time.LocalDate"/>
+            <arg  column="end_date"          javaType="java.time.LocalDate"/>
+            <arg  column="total_exercises"   javaType="Integer"/>
+            <arg  column="created_at"        javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="planJoins">
+        FROM therapy_plans tp
+        INNER JOIN patients p   ON p.id  = tp.patient_id
+        INNER JOIN users pu     ON pu.id = p.user_id
+        INNER JOIN doctors d    ON d.id  = tp.doctor_id
+        INNER JOIN users du     ON du.id = d.user_id
+        WHERE tp.deleted = false
+    </sql>
+
+    <!-- ===== findById — full plan with exercises ===== -->
+    <select id="findById" resultMap="TherapyPlanResponseMap">
+        SELECT
+            tp.id,
+            tp.patient_id,
+            CONCAT(pu.first_name, ' ', pu.last_name)    AS patient_name,
+            tp.doctor_id,
+            CONCAT(du.first_name, ' ', du.last_name)    AS doctor_name,
+            tp.assessment_id,
+            tp.title,
+            tp.description,
+            tp.status,
+            tp.start_date,
+            tp.end_date,
+            tp.goals,
+            tp.notes,
+            tp.created_at,
+            te.id                                        AS ex_id,
+            te.exercise_type,
+            te.name                                      AS ex_name,
+            te.description                               AS ex_description,
+            te.frequency,
+            te.frequency_unit,
+            te.duration_minutes,
+            te.repetitions,
+            te.order_index,
+            te.instructions
+        <include refid="planJoins"/>
+        LEFT JOIN therapy_exercises te ON te.therapy_plan_id = tp.id AND te.deleted = false
+        AND tp.id = #{id}
+        ORDER BY te.order_index ASC
+    </select>
+
+    <!-- ===== findAll — summary list ===== -->
+    <select id="findAll" resultMap="TherapyPlanSummaryMap">
+        SELECT
+        tp.id,
+        tp.patient_id,
+        CONCAT(pu.first_name, ' ', pu.last_name) AS patient_name,
+        tp.doctor_id,
+        CONCAT(du.first_name, ' ', du.last_name) AS doctor_name,
+        tp.title,
+        tp.status,
+        tp.start_date,
+        tp.end_date,
+        COUNT(te.id) AS total_exercises,
+        tp.created_at
+        <include refid="planJoins"/>
+        LEFT JOIN therapy_exercises te ON te.therapy_plan_id = tp.id AND te.deleted = false
+        <if test="patientId != null">AND tp.patient_id = #{patientId}</if>
+        <if test="doctorId != null">AND tp.doctor_id = #{doctorId}</if>
+        <if test="status != null">AND tp.status = #{status}</if>
+        GROUP BY tp.id, pu.first_name, pu.last_name, du.first_name, du.last_name
+        ORDER BY tp.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(DISTINCT tp.id)
+        <include refid="planJoins"/>
+        <if test="patientId != null">AND tp.patient_id = #{patientId}</if>
+        <if test="doctorId != null">AND tp.doctor_id = #{doctorId}</if>
+        <if test="status != null">AND tp.status = #{status}</if>
+    </select>
+
+    <select id="findByPatientId" resultMap="TherapyPlanSummaryMap">
+        SELECT
+        tp.id,
+        tp.patient_id,
+        CONCAT(pu.first_name, ' ', pu.last_name) AS patient_name,
+        tp.doctor_id,
+        CONCAT(du.first_name, ' ', du.last_name) AS doctor_name,
+        tp.title,
+        tp.status,
+        tp.start_date,
+        tp.end_date,
+        COUNT(te.id) AS total_exercises,
+        tp.created_at
+        <include refid="planJoins"/>
+        LEFT JOIN therapy_exercises te ON te.therapy_plan_id = tp.id AND te.deleted = false
+        AND tp.patient_id = #{patientId}
+        GROUP BY tp.id, pu.first_name, pu.last_name, du.first_name, du.last_name
+        ORDER BY tp.created_at DESC
+    </select>
+
+</mapper>
