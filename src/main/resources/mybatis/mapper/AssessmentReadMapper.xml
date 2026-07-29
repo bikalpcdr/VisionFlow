@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.visionflow.core.assessment.repo.AssessmentReadMapper">
+
+    <resultMap id="AssessmentResponseMap" type="com.visionflow.core.assessment.dto.response.AssessmentResponse">
+        <constructor>
+            <idArg column="id"                      javaType="Long"/>
+            <arg  column="patient_id"               javaType="Long"/>
+            <arg  column="patient_name"             javaType="String"/>
+            <arg  column="doctor_id"                javaType="Long"/>
+            <arg  column="doctor_name"              javaType="String"/>
+            <arg  column="assessment_type"          javaType="com.visionflow.core.assessment.enums.AssessmentType"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="status"                   javaType="com.visionflow.core.assessment.enums.AssessmentStatus"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="assessment_date"          javaType="java.time.LocalDateTime"/>
+            <arg  column="visual_acuity_left"       javaType="String"/>
+            <arg  column="visual_acuity_right"      javaType="String"/>
+            <arg  column="visual_acuity_binocular"  javaType="String"/>
+            <arg  column="sphere_left"              javaType="Double"/>
+            <arg  column="sphere_right"             javaType="Double"/>
+            <arg  column="cylinder_left"            javaType="Double"/>
+            <arg  column="cylinder_right"           javaType="Double"/>
+            <arg  column="axis_left"                javaType="Integer"/>
+            <arg  column="axis_right"               javaType="Integer"/>
+            <arg  column="cover_test_result"        javaType="String"/>
+            <arg  column="npc_result"               javaType="String"/>
+            <arg  column="stereopsis_result"        javaType="String"/>
+            <arg  column="severity"                 javaType="com.visionflow.core.assessment.enums.EyeConditionSeverity"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="affected_eye"             javaType="String"/>
+            <arg  column="iop_left"                 javaType="Double"/>
+            <arg  column="iop_right"                javaType="Double"/>
+            <arg  column="chief_complaint"          javaType="String"/>
+            <arg  column="clinical_findings"        javaType="String"/>
+            <arg  column="recommendations"          javaType="String"/>
+            <arg  column="follow_up_date"           javaType="java.time.LocalDateTime"/>
+            <arg  column="created_at"               javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AssessmentSummaryMap" type="com.visionflow.core.assessment.dto.response.AssessmentSummaryResponse">
+        <constructor>
+            <idArg column="id"              javaType="Long"/>
+            <arg  column="patient_id"       javaType="Long"/>
+            <arg  column="patient_name"     javaType="String"/>
+            <arg  column="doctor_id"        javaType="Long"/>
+            <arg  column="doctor_name"      javaType="String"/>
+            <arg  column="assessment_type"  javaType="com.visionflow.core.assessment.enums.AssessmentType"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="status"           javaType="com.visionflow.core.assessment.enums.AssessmentStatus"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="severity"         javaType="com.visionflow.core.assessment.enums.EyeConditionSeverity"
+                  typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+            <arg  column="assessment_date"  javaType="java.time.LocalDateTime"/>
+            <arg  column="follow_up_date"   javaType="java.time.LocalDateTime"/>
+            <arg  column="created_at"       javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="fullColumns">
+        a.id,
+        a.patient_id,
+        CONCAT(pu.first_name, ' ', pu.last_name)  AS patient_name,
+        a.doctor_id,
+        CONCAT(du.first_name, ' ', du.last_name)  AS doctor_name,
+        a.assessment_type,
+        a.status,
+        a.assessment_date,
+        a.visual_acuity_left,
+        a.visual_acuity_right,
+        a.visual_acuity_binocular,
+        a.sphere_left,
+        a.sphere_right,
+        a.cylinder_left,
+        a.cylinder_right,
+        a.axis_left,
+        a.axis_right,
+        a.cover_test_result,
+        a.npc_result,
+        a.stereopsis_result,
+        a.severity,
+        a.affected_eye,
+        a.iop_left,
+        a.iop_right,
+        a.chief_complaint,
+        a.clinical_findings,
+        a.recommendations,
+        a.follow_up_date,
+        a.created_at
+    </sql>
+
+    <sql id="summaryColumns">
+        a.id,
+        a.patient_id,
+        CONCAT(pu.first_name, ' ', pu.last_name)  AS patient_name,
+        a.doctor_id,
+        CONCAT(du.first_name, ' ', du.last_name)  AS doctor_name,
+        a.assessment_type,
+        a.status,
+        a.severity,
+        a.assessment_date,
+        a.follow_up_date,
+        a.created_at
+    </sql>
+
+    <sql id="baseFrom">
+        FROM assessments a
+        INNER JOIN patients p   ON p.id  = a.patient_id
+        INNER JOIN users pu     ON pu.id = p.user_id
+        INNER JOIN doctors d    ON d.id  = a.doctor_id
+        INNER JOIN users du     ON du.id = d.user_id
+        WHERE a.deleted = false
+    </sql>
+
+    <select id="findById" resultMap="AssessmentResponseMap">
+        SELECT <include refid="fullColumns"/>
+        <include refid="baseFrom"/>
+        AND a.id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="AssessmentSummaryMap">
+        SELECT <include refid="summaryColumns"/>
+        <include refid="baseFrom"/>
+        <if test="patientId != null">
+            AND a.patient_id = #{patientId}
+        </if>
+        <if test="doctorId != null">
+            AND a.doctor_id = #{doctorId}
+        </if>
+        <if test="assessmentType != null">
+            AND a.assessment_type = #{assessmentType}
+        </if>
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+        ORDER BY a.assessment_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        <include refid="baseFrom"/>
+        <if test="patientId != null">
+            AND a.patient_id = #{patientId}
+        </if>
+        <if test="doctorId != null">
+            AND a.doctor_id = #{doctorId}
+        </if>
+        <if test="assessmentType != null">
+            AND a.assessment_type = #{assessmentType}
+        </if>
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+    </select>
+
+    <select id="findByPatientId" resultMap="AssessmentSummaryMap">
+        SELECT <include refid="summaryColumns"/>
+        <include refid="baseFrom"/>
+        AND a.patient_id = #{patientId}
+        ORDER BY a.assessment_date DESC
+    </select>
+
+</mapper>
