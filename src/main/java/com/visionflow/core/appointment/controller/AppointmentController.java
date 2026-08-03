@@ -126,10 +126,10 @@ public class AppointmentController {
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'PATIENT')")
     @Operation(summary = "Cancel an appointment")
-    public ResponseEntity<Void> cancel(@PathVariable Long id,
-                                       @RequestBody(required = false) CancelAppointmentRequest request) {
+    @SuccessMessage(entity = MessageConstant.APPOINTMENT, action = MessageConstant.CANCEL)
+    public void cancel(@PathVariable Long id,
+                       @RequestBody(required = false) CancelAppointmentRequest request) {
         appointmentService.cancel(id, request);
-        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/no-show")

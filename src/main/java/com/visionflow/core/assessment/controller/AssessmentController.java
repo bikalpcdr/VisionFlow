@@ -93,6 +93,7 @@ public class AssessmentController {
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
     @Operation(summary = "Cancel an assessment")
+    @SuccessMessage(entity = MessageConstant.ASSESSMENT, action = MessageConstant.CANCEL)
     public ResponseEntity<Void> cancel(@PathVariable Long id) {
         assessmentService.cancel(id);
         return ResponseEntity.noContent().build();

@@ -32,5 +32,6 @@ public class MessageConstant {
     public static final String CLINIC_OVERVIEW = "clinic overview";
     public static final String USER_STATS = "user stats";
     public static final String CHECKED = "checked";
+    public static final String CANCEL = "cancel";
 
 }
