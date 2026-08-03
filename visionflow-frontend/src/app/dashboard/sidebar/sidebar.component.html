@@ -1,0 +1,27 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+    <div class="sidebar-header">
+        <div class="brand">
+            <div class="brand-icon">👁</div>
+            @if (!collapsed()) {
+                <span class="brand-name">VisionFlow</span>
+            }
+        </div>
+        <button class="collapse-btn" (click)="toggle()" [title]="collapsed() ? 'Expand' : 'Collapse'">
+            {{ collapsed() ? '→' : '←' }}
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        @for (item of navItems; track item.route) {
+            <a class="nav-item"
+               [routerLink]="item.route"
+               routerLinkActive="active"
+               [title]="item.label">
+                <span class="nav-icon">{{ item.icon }}</span>
+                @if (!collapsed()) {
+                    <span class="nav-label">{{ item.label }}</span>
+                }
+            </a>
+        }
+    </nav>
+</aside>

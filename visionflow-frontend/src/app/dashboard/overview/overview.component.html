@@ -1,0 +1,38 @@
+<div class="overview">
+
+  <!-- Greeting -->
+  <div class="greeting">
+    <div>
+      <h2>{{ greeting }}, {{ user?.firstName }}! 👋</h2>
+      <p>Here's what's happening in your workspace today.</p>
+    </div>
+    <span class="role-badge role-{{ user?.role?.toLowerCase() }}">{{ user?.role }}</span>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+      <a class="stat-card stat-{{ stat.color }}" [routerLink]="stat.route">
+        <div class="stat-icon">{{ stat.icon }}</div>
+        <div class="stat-body">
+          <span class="stat-value">{{ stat.value }}</span>
+          <span class="stat-label">{{ stat.label }}</span>
+        </div>
+        <span class="stat-arrow">→</span>
+      </a>
+    }
+  </div>
+
+  <!-- Quick links -->
+  <div class="section-title">Quick Access</div>
+  <div class="quick-grid">
+    @for (link of quickLinks; track link.route) {
+      <a class="quick-card" [routerLink]="link.route">
+        <span class="quick-icon">{{ link.icon }}</span>
+        <span class="quick-label">{{ link.label }}</span>
+        <span class="quick-arrow">→</span>
+      </a>
+    }
+  </div>
+
+</div>

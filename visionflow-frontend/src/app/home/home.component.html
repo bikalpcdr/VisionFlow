@@ -1,0 +1,172 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="brand-icon">
+      <span>👁</span>
+    </div>
+    <span class="brand-name">VisionFlow</span>
+  </div>
+  <div class="nav-actions">
+    @if (isLoggedIn) {
+      <button class="btn-primary" (click)="goToDashboard()">Go to Dashboard →</button>
+    } @else {
+      <a class="btn-ghost" routerLink="/login">Login</a>
+      <a class="btn-primary" routerLink="/register">Get Started →</a>
+    }
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg-mesh"></div>
+  <div class="hero-bg-orb orb-1"></div>
+  <div class="hero-bg-orb orb-2"></div>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+            <span class="hero-badge">
+                <span class="badge-dot"></span>
+                Vision Therapy Management
+            </span>
+      <h1>
+        Modern Care for<br>
+        <span class="highlight">Better Vision</span>
+      </h1>
+      <p>VisionFlow streamlines every step of vision therapy — from assessments and therapy plans to appointments,
+        sessions, and progress tracking.</p>
+      <div class="hero-actions">
+        @if (isLoggedIn) {
+          <button class="btn-primary btn-lg" (click)="goToDashboard()">Go to Dashboard →</button>
+        } @else {
+          <a class="btn-primary btn-lg" routerLink="/register">Get Started Free →</a>
+          <a class="btn-ghost btn-lg" routerLink="/login">Sign In</a>
+        }
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-value">3</span>
+          <span class="stat-label">Roles</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value">8+</span>
+          <span class="stat-label">Modules</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value">JWT</span>
+          <span class="stat-label">Secured</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="visual-card main-card">
+        <div class="card-header">
+          <div class="card-dots">
+            <span class="cdot red"></span>
+            <span class="cdot yellow"></span>
+            <span class="cdot green"></span>
+          </div>
+          <span class="card-title">Live Activity</span>
+        </div>
+        <div class="activity-list">
+          <div class="activity-item">
+            <span class="activity-icon green-bg">✓</span>
+            <div class="activity-text">
+              <span>Assessment completed</span>
+              <small>Patient #1042 · just now</small>
+            </div>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon blue-bg">📋</span>
+            <div class="activity-text">
+              <span>Therapy plan assigned</span>
+              <small>Patient #1039 · 2m ago</small>
+            </div>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon yellow-bg">📅</span>
+            <div class="activity-text">
+              <span>Appointment confirmed</span>
+              <small>Dr. Smith · 5m ago</small>
+            </div>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon green-bg">✓</span>
+            <div class="activity-text">
+              <span>Session completed</span>
+              <small>Patient #1031 · 12m ago</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="visual-card mini-card mini-card-1">
+        <span class="mini-icon">📊</span>
+        <div>
+          <div class="mini-value">94%</div>
+          <div class="mini-label">Completion Rate</div>
+        </div>
+      </div>
+
+      <div class="visual-card mini-card mini-card-2">
+        <span class="mini-icon">🔔</span>
+        <div>
+          <div class="mini-value">12</div>
+          <div class="mini-label">Notifications</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+  <div class="features-header">
+    <span class="section-label">What's inside</span>
+    <h2>Everything you need in one platform</h2>
+    <p>Built for clinics, doctors, and patients — all in one place.</p>
+  </div>
+  <div class="features-grid">
+    @for (feature of features; track feature.title; let i = $index) {
+      <div class="feature-card" [style.--i]="i">
+        <div class="feature-icon-wrap">
+          <span class="feature-icon">{{ feature.icon }}</span>
+        </div>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+        <span class="feature-arrow">→</span>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="cta-glow"></div>
+  <div class="cta-inner">
+    <span class="section-label light">Get started today</span>
+    <h2>Ready to transform your clinic?</h2>
+    <p>Join VisionFlow and bring clarity to your vision therapy workflows.</p>
+    @if (!isLoggedIn) {
+      <a class="btn-white btn-lg" routerLink="/register">Get Started Free →</a>
+    }
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="brand-icon small">
+        <span>👁</span>
+      </div>
+      <span class="brand-name">VisionFlow</span>
+    </div>
+    <span class="footer-copy">© {{ year }} VisionFlow. All rights reserved.</span>
+    <div class="footer-links">
+      <span>Built with Spring Boot + Angular</span>
+    </div>
+  </div>
+</footer>

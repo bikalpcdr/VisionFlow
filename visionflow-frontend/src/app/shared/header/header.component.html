@@ -1,0 +1,12 @@
+<header class="header">
+  <div class="header-brand">
+    <span class="brand-logo">👁</span>
+    <span class="brand-name">VisionFlow</span>
+  </div>
+
+  <div class="header-user">
+    <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
+    <span class="user-role">{{ user?.role }}</span>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </div>
+</header>

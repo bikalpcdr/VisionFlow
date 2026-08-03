@@ -1,0 +1,278 @@
+<div class="page">
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div>
+            <h2>Doctors</h2>
+            <p>Manage doctor profiles and specializations</p>
+        </div>
+        @if (isAdmin) {
+            <button class="btn-primary" (click)="openCreate()">+ Add Doctor</button>
+        }
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <input class="search-input" type="text" placeholder="Search by name, email, specialization..."
+            [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
+
+        <select [(ngModel)]="filterSpecialization" (ngModelChange)="load()">
+            <option value="">All Specializations</option>
+            @for (s of specializations; track s) {
+                <option [value]="s">{{ s }}</option>
+            }
+        </select>
+
+        <select [(ngModel)]="filterActive" (ngModelChange)="load()">
+            <option [ngValue]="undefined">All Status</option>
+            <option [ngValue]="true">Active</option>
+            <option [ngValue]="false">Inactive</option>
+        </select>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading) {
+        <div class="loading">Loading doctors...</div>
+    }
+
+    <!-- Table -->
+    @if (!isLoading) {
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Specialization</th>
+                        <th>License</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filtered.length === 0) {
+                        <tr>
+                            <td colspan="6" class="empty">No doctors found.</td>
+                        </tr>
+                    }
+                    @for (doctor of filtered; track doctor.id) {
+                        <tr>
+                            <td>
+                                <div class="doctor-cell">
+                                    <div class="avatar">
+                                        {{ doctor.firstName.charAt(0) }}{{ doctor.lastName.charAt(0) }}
+                                    </div>
+                                    <div>
+                                        <div class="name">{{ doctor.firstName }} {{ doctor.lastName }}</div>
+                                        <div class="email">{{ doctor.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="spec-badge">{{ doctor.specialization }}</span></td>
+                            <td class="muted">{{ doctor.licenseNumber }}</td>
+                            <td class="muted">{{ doctor.phone }}</td>
+                            <td>
+                                <span class="status-badge" [class.active]="doctor.active" [class.inactive]="!doctor.active">
+                                    {{ doctor.active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn-icon view" (click)="openDetail(doctor)" title="View">👁</button>
+                                    @if (canEdit(doctor)) {
+                                        <button class="btn-icon edit" (click)="openEdit(doctor)" title="Edit">✏️</button>
+                                    }
+                                    @if (isAdmin && doctor.active) {
+                                        <button class="btn-icon deactivate" (click)="confirmDeactivate(doctor)" title="Deactivate">🚫</button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-footer">
+            Showing {{ filtered.length }} of {{ doctors.length }} doctors
+        </div>
+    }
+
+</div>
+
+<!-- Create / Edit Modal -->
+@if (showModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>{{ isEditMode ? 'Edit Doctor' : 'Add New Doctor' }}</h3>
+                <button class="modal-close" (click)="closeModal()">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!isEditMode) {
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" [(ngModel)]="createForm.firstName" placeholder="John"
+                                [class.error]="formErrors['firstName']" />
+                            @if (formErrors['firstName']) { <span class="field-error">{{ formErrors['firstName'] }}</span> }
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" [(ngModel)]="createForm.lastName" placeholder="Doe"
+                                [class.error]="formErrors['lastName']" />
+                            @if (formErrors['lastName']) { <span class="field-error">{{ formErrors['lastName'] }}</span> }
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" [(ngModel)]="createForm.email" placeholder="doctor@clinic.com"
+                            [class.error]="formErrors['email']" />
+                        @if (formErrors['email']) { <span class="field-error">{{ formErrors['email'] }}</span> }
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" [(ngModel)]="createForm.password" placeholder="Temporary password"
+                            [class.error]="formErrors['password']" />
+                        @if (formErrors['password']) { <span class="field-error">{{ formErrors['password'] }}</span> }
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" [(ngModel)]="createForm.phone" placeholder="+1 234 567 8900"
+                                [class.error]="formErrors['phone']" />
+                            @if (formErrors['phone']) { <span class="field-error">{{ formErrors['phone'] }}</span> }
+                        </div>
+                        <div class="form-group">
+                            <label>License Number</label>
+                            <input type="text" [(ngModel)]="createForm.licenseNumber" placeholder="LIC-0001"
+                                [class.error]="formErrors['licenseNumber']" />
+                            @if (formErrors['licenseNumber']) { <span class="field-error">{{ formErrors['licenseNumber'] }}</span> }
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Specialization</label>
+                        <input type="text" [(ngModel)]="createForm.specialization" placeholder="e.g. Optometrist"
+                            [class.error]="formErrors['specialization']" />
+                        @if (formErrors['specialization']) { <span class="field-error">{{ formErrors['specialization'] }}</span> }
+                    </div>
+                } @else {
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" [(ngModel)]="editForm.firstName"
+                                [class.error]="formErrors['firstName']" />
+                            @if (formErrors['firstName']) { <span class="field-error">{{ formErrors['firstName'] }}</span> }
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" [(ngModel)]="editForm.lastName"
+                                [class.error]="formErrors['lastName']" />
+                            @if (formErrors['lastName']) { <span class="field-error">{{ formErrors['lastName'] }}</span> }
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" [(ngModel)]="editForm.phone"
+                                [class.error]="formErrors['phone']" />
+                            @if (formErrors['phone']) { <span class="field-error">{{ formErrors['phone'] }}</span> }
+                        </div>
+                        <div class="form-group">
+                            <label>License Number</label>
+                            <input type="text" [(ngModel)]="editForm.licenseNumber"
+                                [class.error]="formErrors['licenseNumber']" />
+                            @if (formErrors['licenseNumber']) { <span class="field-error">{{ formErrors['licenseNumber'] }}</span> }
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Specialization</label>
+                        <input type="text" [(ngModel)]="editForm.specialization"
+                            [class.error]="formErrors['specialization']" />
+                        @if (formErrors['specialization']) { <span class="field-error">{{ formErrors['specialization'] }}</span> }
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-ghost" (click)="closeModal()">Cancel</button>
+                <button class="btn-primary" (click)="save()" [disabled]="isSaving">
+                    {{ isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Doctor') }}
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Detail Modal -->
+@if (showDetail && detailDoctor) {
+    <div class="modal-overlay" (click)="closeDetail()">
+        <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Doctor Profile</h3>
+                <button class="modal-close" (click)="closeDetail()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-header">
+                    <div class="avatar large">
+                        {{ detailDoctor.firstName.charAt(0) }}{{ detailDoctor.lastName.charAt(0) }}
+                    </div>
+                    <div>
+                        <div class="detail-name">Dr. {{ detailDoctor.firstName }} {{ detailDoctor.lastName }}</div>
+                        <div class="detail-email">{{ detailDoctor.email }}</div>
+                        <span class="status-badge" [class.active]="detailDoctor.active" [class.inactive]="!detailDoctor.active">
+                            {{ detailDoctor.active ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Specialization</span>
+                        <span class="detail-value">{{ detailDoctor.specialization }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">License Number</span>
+                        <span class="detail-value">{{ detailDoctor.licenseNumber }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ detailDoctor.phone }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Member Since</span>
+                        <span class="detail-value">{{ detailDoctor.createdAt | date:'mediumDate' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                @if (canEdit(detailDoctor)) {
+                    <button class="btn-ghost" (click)="closeDetail(); openEdit(detailDoctor)">Edit</button>
+                }
+                <button class="btn-primary" (click)="closeDetail()">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Deactivate Confirm -->
+@if (showDeactivateConfirm) {
+    <div class="modal-overlay" (click)="showDeactivateConfirm = false">
+        <div class="modal confirm-modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Deactivate Doctor</h3>
+                <button class="modal-close" (click)="showDeactivateConfirm = false">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to deactivate
+                    <strong>Dr. {{ deactivateTarget?.firstName }} {{ deactivateTarget?.lastName }}</strong>?
+                </p>
+                <p class="warn-text">This will prevent them from accessing the system.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost" (click)="showDeactivateConfirm = false">Cancel</button>
+                <button class="btn-danger" (click)="deactivate()">Deactivate</button>
+            </div>
+        </div>
+    </div>
+}

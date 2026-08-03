@@ -1,0 +1,72 @@
+export const API_CONFIG = {
+  BASE_URL: 'http://localhost:7777/api',
+  ENDPOINTS: {
+    AUTH: {
+      LOGIN: '/auth/login',
+      REGISTER: '/auth/register',
+      REFRESH: '/auth/refresh',
+    },
+    USERS: {
+      BASE: '/users',
+      BY_ID: (id: number) => `/users/${id}`,
+      DEACTIVATE: (id: number) => `/users/${id}/deactivate`,
+    },
+    DOCTORS: {
+      BASE: '/doctors',
+      BY_ID: (id: number) => `/doctors/${id}`,
+      BY_USER: (userId: number) => `/doctors/user/${userId}`,
+      DEACTIVATE: (id: number) => `/doctors/${id}/deactivate`,
+    },
+    PATIENTS: {
+      BASE: '/patients',
+      BY_ID: (id: number) => `/patients/${id}`,
+      BY_USER: (userId: number) => `/patients/user/${userId}`,
+      ASSIGN_DOCTOR: (id: number) => `/patients/${id}/assign-doctor`,
+      DEACTIVATE: (id: number) => `/patients/${id}/deactivate`,
+    },
+    APPOINTMENTS: {
+      BASE: '/appointments',
+      BY_ID: (id: number) => `/appointments/${id}`,
+      BY_PATIENT: (patientId: number) => `/appointments/patient/${patientId}`,
+      BY_DOCTOR: (doctorId: number) => `/appointments/doctor/${doctorId}`,
+      CONFIRM: (id: number) => `/appointments/${id}/confirm`,
+      START: (id: number) => `/appointments/${id}/start`,
+      COMPLETE: (id: number) => `/appointments/${id}/complete`,
+      CANCEL: (id: number) => `/appointments/${id}/cancel`,
+      NO_SHOW: (id: number) => `/appointments/${id}/no-show`,
+    },
+    ASSESSMENTS: {
+      BASE: '/assessments',
+      BY_ID: (id: number) => `/assessments/${id}`,
+      BY_PATIENT: (patientId: number) => `/assessments/patient/${patientId}`,
+      CANCEL: (id: number) => `/assessments/${id}/cancel`,
+    },
+    THERAPY_PLANS: {
+      BASE: '/therapy-plans',
+      BY_ID: (id: number) => `/therapy-plans/${id}`,
+      BY_PATIENT: (patientId: number) => `/therapy-plans/patient/${patientId}`,
+      CANCEL: (id: number) => `/therapy-plans/${id}/cancel`,
+    },
+    SESSIONS: {
+      BASE: '/sessions',
+      BY_ID: (id: number) => `/sessions/${id}`,
+      BY_PLAN: (planId: number) => `/sessions/plan/${planId}`,
+      START: (id: number) => `/sessions/${id}/start`,
+      COMPLETE: (id: number) => `/sessions/${id}/complete`,
+      CANCEL: (id: number) => `/sessions/${id}/cancel`,
+    },
+    NOTIFICATIONS: {
+      BASE: '/notifications',
+      BY_ID: (id: number) => `/notifications/${id}`,
+      UNREAD: '/notifications/unread',
+      UNREAD_COUNT: '/notifications/unread/count',
+      READ: (id: number) => `/notifications/${id}/read`,
+      READ_ALL: '/notifications/read-all',
+    },
+    REPORTS: {
+      PATIENT_PROGRESS: (patientId: number) => `/reports/patients/${patientId}/progress`,
+      DOCTOR_WORKLOAD: (doctorId: number) => `/reports/doctors/${doctorId}/workload`,
+      CLINIC_OVERVIEW: '/reports/clinic/overview',
+    },
+  },
+};
